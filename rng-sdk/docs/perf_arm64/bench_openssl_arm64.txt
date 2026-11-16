@@ -1,0 +1,265 @@
+compiler:   clang 21.0.0
+arch:       arm64
+build:      Release (NDEBUG)
+crypto:     OpenSSL backend (CTR-DRBG row present)
+generated:  2026-09-12 16:12:56
+iterations: 50000000 (crypto rows use n/10)
+
+generator                      uint64/s        doubles/s
+xoshiro256++ (ours)           1.589e+09        1.545e+09
+pcg64 (ours)                  7.195e+08        7.269e+08
+hmac-drbg (ours)              7.220e+06        7.324e+06
+ctr-drbg aes-256 (ours)        1.855e+08        1.797e+08
+std::mt19937_64               7.296e+08                -
+C rand() (built-in)           5.584e+07        5.587e+07
+std::minstd_rand              3.119e+08                -
+
+The "C rand()" row spends five rand() calls per 64-bit word, which is
+how rng_pi and rng_ode consume it; divide by 5 for a per-rand() cost.
+
+Note: compile with -O2/Release. HMAC-DRBG cost is dominated by two
+SHA-256 compressions per 32-byte block. CTR-DRBG rides AES-NI (build
+-DRNGSDK_USE_OPENSSL=ON to include it; absent from this table
+otherwise).
+
+The CTR-vs-HMAC speedup is DELIBERATELY not printed as a fixed number
+here, because it is not one. It depends on the machine's AES-NI
+throughput and on WHICH HMAC baseline is used:
+  * Compare CTR-DRBG against the BUNDLED HMAC row. OpenSSL's one-shot
+    HMAC() is ~2x SLOWER than the bundled reference at this call
+    pattern (one MAC per 32-byte block) -- see OPEN_RESEARCH #11 --
+    so dividing by the OpenSSL HMAC row inflates the ratio.
+  * The bundled HMAC row only exists in a BUNDLED build, and the
+    CTR row only exists in an OPENSSL build, so an honest ratio needs
+    BOTH builds run on the SAME machine. docs/benchmark_results.txt
+    carries both tables for exactly this reason.
+Recorded measurement: ~13.6x (DESIGN_NOTES 8b, MSVC Release), and an
+independent idle re-measurement on 2026-08-25 gave 14.6x -- consistent.
+
+MEASUREMENT VALIDITY -- run this tool on an IDLE machine.
+This tool is far more sensitive to machine load than to anything else.
+Measured on the 2-core development laptop 2026-08-25:
+  * Runs taken WHILE builds and test suites were running spanned 2.6x
+    on the xoshiro uint64 row, 7.9x on xoshiro doubles, 7.0x on
+    C rand() and 3.9x on mt19937_64. At that spread the noise exceeds
+    most of the between-engine differences the table exists to show,
+    and two CTR-vs-HMAC ratios ten minutes apart gave 7.4x and 18.5x.
+  * Four consecutive runs on the SAME box with nothing else running
+    spanned only 1.09x (xoshiro uint64), 1.23x (pcg64), 1.11x
+    (hmac-drbg) and 1.08x (C rand()) -- ordinary benchmark noise.
+The hardware is fine; concurrent load is what destroys the numbers.
+So: close other work, run this >=4 times, and report median + spread
+rather than a single sample. A single run is evidence only once the
+idle spread on that box is known. See OPEN_RESEARCH #7c(a) and #9.
+compiler:   clang 21.0.0
+arch:       arm64
+build:      Release (NDEBUG)
+crypto:     OpenSSL backend (CTR-DRBG row present)
+generated:  2026-09-12 16:12:59
+iterations: 50000000 (crypto rows use n/10)
+
+generator                      uint64/s        doubles/s
+xoshiro256++ (ours)           1.601e+09        1.567e+09
+pcg64 (ours)                  7.280e+08        7.278e+08
+hmac-drbg (ours)              7.041e+06        7.201e+06
+ctr-drbg aes-256 (ours)        1.900e+08        1.797e+08
+std::mt19937_64               7.291e+08                -
+C rand() (built-in)           5.576e+07        5.583e+07
+std::minstd_rand              3.209e+08                -
+
+The "C rand()" row spends five rand() calls per 64-bit word, which is
+how rng_pi and rng_ode consume it; divide by 5 for a per-rand() cost.
+
+Note: compile with -O2/Release. HMAC-DRBG cost is dominated by two
+SHA-256 compressions per 32-byte block. CTR-DRBG rides AES-NI (build
+-DRNGSDK_USE_OPENSSL=ON to include it; absent from this table
+otherwise).
+
+The CTR-vs-HMAC speedup is DELIBERATELY not printed as a fixed number
+here, because it is not one. It depends on the machine's AES-NI
+throughput and on WHICH HMAC baseline is used:
+  * Compare CTR-DRBG against the BUNDLED HMAC row. OpenSSL's one-shot
+    HMAC() is ~2x SLOWER than the bundled reference at this call
+    pattern (one MAC per 32-byte block) -- see OPEN_RESEARCH #11 --
+    so dividing by the OpenSSL HMAC row inflates the ratio.
+  * The bundled HMAC row only exists in a BUNDLED build, and the
+    CTR row only exists in an OPENSSL build, so an honest ratio needs
+    BOTH builds run on the SAME machine. docs/benchmark_results.txt
+    carries both tables for exactly this reason.
+Recorded measurement: ~13.6x (DESIGN_NOTES 8b, MSVC Release), and an
+independent idle re-measurement on 2026-08-25 gave 14.6x -- consistent.
+
+MEASUREMENT VALIDITY -- run this tool on an IDLE machine.
+This tool is far more sensitive to machine load than to anything else.
+Measured on the 2-core development laptop 2026-08-25:
+  * Runs taken WHILE builds and test suites were running spanned 2.6x
+    on the xoshiro uint64 row, 7.9x on xoshiro doubles, 7.0x on
+    C rand() and 3.9x on mt19937_64. At that spread the noise exceeds
+    most of the between-engine differences the table exists to show,
+    and two CTR-vs-HMAC ratios ten minutes apart gave 7.4x and 18.5x.
+  * Four consecutive runs on the SAME box with nothing else running
+    spanned only 1.09x (xoshiro uint64), 1.23x (pcg64), 1.11x
+    (hmac-drbg) and 1.08x (C rand()) -- ordinary benchmark noise.
+The hardware is fine; concurrent load is what destroys the numbers.
+So: close other work, run this >=4 times, and report median + spread
+rather than a single sample. A single run is evidence only once the
+idle spread on that box is known. See OPEN_RESEARCH #7c(a) and #9.
+compiler:   clang 21.0.0
+arch:       arm64
+build:      Release (NDEBUG)
+crypto:     OpenSSL backend (CTR-DRBG row present)
+generated:  2026-09-12 16:13:01
+iterations: 50000000 (crypto rows use n/10)
+
+generator                      uint64/s        doubles/s
+xoshiro256++ (ours)           1.588e+09        1.566e+09
+pcg64 (ours)                  7.249e+08        7.255e+08
+hmac-drbg (ours)              7.239e+06        7.340e+06
+ctr-drbg aes-256 (ours)        1.838e+08        1.777e+08
+std::mt19937_64               7.245e+08                -
+C rand() (built-in)           5.583e+07        5.581e+07
+std::minstd_rand              3.202e+08                -
+
+The "C rand()" row spends five rand() calls per 64-bit word, which is
+how rng_pi and rng_ode consume it; divide by 5 for a per-rand() cost.
+
+Note: compile with -O2/Release. HMAC-DRBG cost is dominated by two
+SHA-256 compressions per 32-byte block. CTR-DRBG rides AES-NI (build
+-DRNGSDK_USE_OPENSSL=ON to include it; absent from this table
+otherwise).
+
+The CTR-vs-HMAC speedup is DELIBERATELY not printed as a fixed number
+here, because it is not one. It depends on the machine's AES-NI
+throughput and on WHICH HMAC baseline is used:
+  * Compare CTR-DRBG against the BUNDLED HMAC row. OpenSSL's one-shot
+    HMAC() is ~2x SLOWER than the bundled reference at this call
+    pattern (one MAC per 32-byte block) -- see OPEN_RESEARCH #11 --
+    so dividing by the OpenSSL HMAC row inflates the ratio.
+  * The bundled HMAC row only exists in a BUNDLED build, and the
+    CTR row only exists in an OPENSSL build, so an honest ratio needs
+    BOTH builds run on the SAME machine. docs/benchmark_results.txt
+    carries both tables for exactly this reason.
+Recorded measurement: ~13.6x (DESIGN_NOTES 8b, MSVC Release), and an
+independent idle re-measurement on 2026-08-25 gave 14.6x -- consistent.
+
+MEASUREMENT VALIDITY -- run this tool on an IDLE machine.
+This tool is far more sensitive to machine load than to anything else.
+Measured on the 2-core development laptop 2026-08-25:
+  * Runs taken WHILE builds and test suites were running spanned 2.6x
+    on the xoshiro uint64 row, 7.9x on xoshiro doubles, 7.0x on
+    C rand() and 3.9x on mt19937_64. At that spread the noise exceeds
+    most of the between-engine differences the table exists to show,
+    and two CTR-vs-HMAC ratios ten minutes apart gave 7.4x and 18.5x.
+  * Four consecutive runs on the SAME box with nothing else running
+    spanned only 1.09x (xoshiro uint64), 1.23x (pcg64), 1.11x
+    (hmac-drbg) and 1.08x (C rand()) -- ordinary benchmark noise.
+The hardware is fine; concurrent load is what destroys the numbers.
+So: close other work, run this >=4 times, and report median + spread
+rather than a single sample. A single run is evidence only once the
+idle spread on that box is known. See OPEN_RESEARCH #7c(a) and #9.
+compiler:   clang 21.0.0
+arch:       arm64
+build:      Release (NDEBUG)
+crypto:     OpenSSL backend (CTR-DRBG row present)
+generated:  2026-09-12 16:13:03
+iterations: 50000000 (crypto rows use n/10)
+
+generator                      uint64/s        doubles/s
+xoshiro256++ (ours)           1.560e+09        1.567e+09
+pcg64 (ours)                  7.250e+08        7.280e+08
+hmac-drbg (ours)              7.011e+06        7.151e+06
+ctr-drbg aes-256 (ours)        1.853e+08        1.771e+08
+std::mt19937_64               7.142e+08                -
+C rand() (built-in)           5.579e+07        5.556e+07
+std::minstd_rand              3.206e+08                -
+
+The "C rand()" row spends five rand() calls per 64-bit word, which is
+how rng_pi and rng_ode consume it; divide by 5 for a per-rand() cost.
+
+Note: compile with -O2/Release. HMAC-DRBG cost is dominated by two
+SHA-256 compressions per 32-byte block. CTR-DRBG rides AES-NI (build
+-DRNGSDK_USE_OPENSSL=ON to include it; absent from this table
+otherwise).
+
+The CTR-vs-HMAC speedup is DELIBERATELY not printed as a fixed number
+here, because it is not one. It depends on the machine's AES-NI
+throughput and on WHICH HMAC baseline is used:
+  * Compare CTR-DRBG against the BUNDLED HMAC row. OpenSSL's one-shot
+    HMAC() is ~2x SLOWER than the bundled reference at this call
+    pattern (one MAC per 32-byte block) -- see OPEN_RESEARCH #11 --
+    so dividing by the OpenSSL HMAC row inflates the ratio.
+  * The bundled HMAC row only exists in a BUNDLED build, and the
+    CTR row only exists in an OPENSSL build, so an honest ratio needs
+    BOTH builds run on the SAME machine. docs/benchmark_results.txt
+    carries both tables for exactly this reason.
+Recorded measurement: ~13.6x (DESIGN_NOTES 8b, MSVC Release), and an
+independent idle re-measurement on 2026-08-25 gave 14.6x -- consistent.
+
+MEASUREMENT VALIDITY -- run this tool on an IDLE machine.
+This tool is far more sensitive to machine load than to anything else.
+Measured on the 2-core development laptop 2026-08-25:
+  * Runs taken WHILE builds and test suites were running spanned 2.6x
+    on the xoshiro uint64 row, 7.9x on xoshiro doubles, 7.0x on
+    C rand() and 3.9x on mt19937_64. At that spread the noise exceeds
+    most of the between-engine differences the table exists to show,
+    and two CTR-vs-HMAC ratios ten minutes apart gave 7.4x and 18.5x.
+  * Four consecutive runs on the SAME box with nothing else running
+    spanned only 1.09x (xoshiro uint64), 1.23x (pcg64), 1.11x
+    (hmac-drbg) and 1.08x (C rand()) -- ordinary benchmark noise.
+The hardware is fine; concurrent load is what destroys the numbers.
+So: close other work, run this >=4 times, and report median + spread
+rather than a single sample. A single run is evidence only once the
+idle spread on that box is known. See OPEN_RESEARCH #7c(a) and #9.
+compiler:   clang 21.0.0
+arch:       arm64
+build:      Release (NDEBUG)
+crypto:     OpenSSL backend (CTR-DRBG row present)
+generated:  2026-09-12 16:13:05
+iterations: 50000000 (crypto rows use n/10)
+
+generator                      uint64/s        doubles/s
+xoshiro256++ (ours)           1.600e+09        1.566e+09
+pcg64 (ours)                  7.229e+08        7.255e+08
+hmac-drbg (ours)              7.062e+06        7.236e+06
+ctr-drbg aes-256 (ours)        1.853e+08        1.765e+08
+std::mt19937_64               7.266e+08                -
+C rand() (built-in)           5.553e+07        5.584e+07
+std::minstd_rand              3.201e+08                -
+
+The "C rand()" row spends five rand() calls per 64-bit word, which is
+how rng_pi and rng_ode consume it; divide by 5 for a per-rand() cost.
+
+Note: compile with -O2/Release. HMAC-DRBG cost is dominated by two
+SHA-256 compressions per 32-byte block. CTR-DRBG rides AES-NI (build
+-DRNGSDK_USE_OPENSSL=ON to include it; absent from this table
+otherwise).
+
+The CTR-vs-HMAC speedup is DELIBERATELY not printed as a fixed number
+here, because it is not one. It depends on the machine's AES-NI
+throughput and on WHICH HMAC baseline is used:
+  * Compare CTR-DRBG against the BUNDLED HMAC row. OpenSSL's one-shot
+    HMAC() is ~2x SLOWER than the bundled reference at this call
+    pattern (one MAC per 32-byte block) -- see OPEN_RESEARCH #11 --
+    so dividing by the OpenSSL HMAC row inflates the ratio.
+  * The bundled HMAC row only exists in a BUNDLED build, and the
+    CTR row only exists in an OPENSSL build, so an honest ratio needs
+    BOTH builds run on the SAME machine. docs/benchmark_results.txt
+    carries both tables for exactly this reason.
+Recorded measurement: ~13.6x (DESIGN_NOTES 8b, MSVC Release), and an
+independent idle re-measurement on 2026-08-25 gave 14.6x -- consistent.
+
+MEASUREMENT VALIDITY -- run this tool on an IDLE machine.
+This tool is far more sensitive to machine load than to anything else.
+Measured on the 2-core development laptop 2026-08-25:
+  * Runs taken WHILE builds and test suites were running spanned 2.6x
+    on the xoshiro uint64 row, 7.9x on xoshiro doubles, 7.0x on
+    C rand() and 3.9x on mt19937_64. At that spread the noise exceeds
+    most of the between-engine differences the table exists to show,
+    and two CTR-vs-HMAC ratios ten minutes apart gave 7.4x and 18.5x.
+  * Four consecutive runs on the SAME box with nothing else running
+    spanned only 1.09x (xoshiro uint64), 1.23x (pcg64), 1.11x
+    (hmac-drbg) and 1.08x (C rand()) -- ordinary benchmark noise.
+The hardware is fine; concurrent load is what destroys the numbers.
+So: close other work, run this >=4 times, and report median + spread
+rather than a single sample. A single run is evidence only once the
+idle spread on that box is known. See OPEN_RESEARCH #7c(a) and #9.

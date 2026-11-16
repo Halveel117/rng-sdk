@@ -1,0 +1,13 @@
+Commit: 1e6cf9d
+UTC: 2026-09-12T12:44:17Z
+Architecture: arm64
+Chip: Apple M4 Pro
+Performance cores: 10
+Efficiency cores: 4
+Memory bytes: 51539607552
+ProductName:		macOS
+ProductVersion:		26.6.1
+BuildVersion:		25G76
+Apple clang version 21.0.0 (clang-2100.1.1.101)
+./build/rng_bench:         Mach-O 64-bit executable arm64
+./build-openssl/rng_bench: Mach-O 64-bit executable arm64

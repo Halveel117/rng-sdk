@@ -1,0 +1,47 @@
+compiler:   clang 21.0.0
+arch:       arm64
+build:      Release (NDEBUG)
+crypto:     bundled reference backend (no CTR-DRBG row)
+generated:  2026-09-12 16:18:47
+hw_threads: 14 (hardware_concurrency)
+words:      50000000 per thread (hmac rows n/25, ctr rows n/5)
+repeats:    5 per cell, median reported
+
+streams:    distinct across 28 threads for every engine (verified)
+
+engine                  threads    u64/s (agg)     speedup efficiency     spread
+xoshiro256++ (ours)           1      1.456e+09       1.00x     100.0%      1.55x
+xoshiro256++ (ours)           2      2.951e+09       2.03x     101.3%      1.01x
+xoshiro256++ (ours)           4      5.296e+09       3.64x      90.9%      1.00x
+xoshiro256++ (ours)           8      1.045e+10       7.18x      89.7%      1.01x
+xoshiro256++ (ours)          14      1.390e+10       9.55x      68.2%      1.13x
+xoshiro256++ (ours)          28      1.433e+10       9.84x      35.2%      1.06x
+pcg64 (ours)                  1      8.668e+08       1.00x     100.0%      1.01x
+pcg64 (ours)                  2      1.691e+09       1.95x      97.5%      1.03x
+pcg64 (ours)                  4      3.016e+09       3.48x      87.0%      1.00x
+pcg64 (ours)                  8      5.942e+09       6.86x      85.7%      1.01x
+pcg64 (ours)                 14      9.105e+09      10.50x      75.0%      1.06x
+pcg64 (ours)                 28      8.865e+09      10.23x      36.5%      1.05x
+hmac-drbg (ours)              1      5.969e+06       1.00x     100.0%      1.00x
+hmac-drbg (ours)              2      1.166e+07       1.95x      97.7%      1.01x
+hmac-drbg (ours)              4      2.083e+07       3.49x      87.2%      1.12x
+hmac-drbg (ours)              8      4.079e+07       6.83x      85.4%      1.03x
+hmac-drbg (ours)             14      5.713e+07       9.57x      68.4%      1.02x
+hmac-drbg (ours)             28      5.692e+07       9.54x      34.1%      1.02x
+
+speedup    = median throughput at T threads / median at 1 thread.
+efficiency = speedup / T. 100% is perfectly linear scaling; the last
+             row is deliberately oversubscribed (2x hardware threads)
+             and is EXPECTED to sit near 50% -- that is the scheduler
+             time-slicing, not lock contention. A COLLAPSE there, or
+             efficiency falling off well before the core count, would
+             be the finding worth chasing.
+spread     = max/min across repeats. Treat a cell above ~1.3x as noise-
+             dominated and re-run on an idle machine -- see the load
+             warning in rng_bench and OPEN_RESEARCH #7c(a).
+
+Machines with heterogeneous cores (Apple P/E, Intel P/E) will show
+efficiency sagging once the scheduler starts filling efficiency cores.
+That is the hardware, not the library: report the core split alongside.
+
+wrote docs/perf_arm64/threads_bundled_arm64_retry1.csv

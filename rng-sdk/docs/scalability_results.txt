@@ -1,0 +1,429 @@
+rng_thread_bench scalability results
+====================================
+
+Spec section 6, "scalability (multithreading)". Companion to
+benchmark_results.txt, which covers single-core throughput.
+
+Two tables per machine, BOTH required, for the same reason as
+benchmark_results.txt: the AES-256-CTR-DRBG row exists only in an OpenSSL
+build, and the bundled HMAC baseline only in a bundled build.
+
+  Regenerate:  ./build/rng_thread_bench          --csv <file>.csv
+               ./build-openssl/rng_thread_bench  --csv <file>.csv
+
+Defaults are 50,000,000 words per thread (HMAC rows n/25, CTR rows n/5) and
+--repeats 5, median reported per cell. Raw artifacts, including the full
+provenance headers and interpretive notes, are in docs/perf_x86_64/ (Machine
+1) and docs/perf_arm64/ (Machine 2).
+
+READ `efficiency`, NOT `speedup`. Efficiency is speedup / threads; 100% is
+perfectly linear. The final row of each block is deliberately oversubscribed
+(2x hardware threads).
+
+
+====================================================================
+MACHINE 1 of 2 -- x86-64 / Windows / MSVC  (development box)
+====================================================================
+AMD Ryzen 7 260 w/ Radeon 780M, 8 physical cores / 16 logical (SMT).
+Homogeneous cores -- no P/E split. Mobile APU, so sustained all-core
+clocks are power-limited; this matters for reading the tables below.
+Windows 11, MSVC 19.51 (VS 18, v145 toolset), x64 Release.
+Taken 2026-09-12 (supersedes the 2026-09-11 tables; see protocol note
+below). Both suites re-confirmed green after the harness change and
+before this run: 672,276/672,276 bundled, 895,552/895,552 OpenSSL, both
+builds warning-free. Prior tables remain in git history.
+
+PROTOCOL CHANGE, 2026-09-12: the harness (tools/thread_bench.cpp) now
+runs one untimed, discarded warm-up RunCell() per cell before the five
+recorded repeats, and prints the five raw per-repeat throughputs to
+stdout (previously only min/median/max survived into the CSV). This
+was prompted by an ARM64 run showing xoshiro-at-1-thread spread of
+1.54-1.56x; the hypothesis was first-touch/thread-creation jitter on
+the very first timed repeat, which a warm-up eliminates. No RNG engine
+code changed. Verified behaviour-neutral: both suites pass at the same
+counts as before the change.
+
+CAVEAT ON IDLENESS, carried forward because it is still true: these
+runs share the machine with VSCode and background OS/vendor services
+(the session driving them runs inside VSCode). Five attempts were made
+in total while chasing one noisy cell, the last two (the pair reported
+in the tables below) taken after manually closing browser and vendor
+tray apps. Closing them did not remove the noisy cell -- see point 2,
+where that is itself part of the finding.
+
+--------------------------------------------------------------------
+TABLE 1 of 2 -- bundled reference backend
+--------------------------------------------------------------------
+engine                  threads    u64/s (agg)     speedup efficiency     spread
+xoshiro256++ (ours)           1      1.358e+09       1.00x     100.0%      1.03x
+xoshiro256++ (ours)           2      2.489e+09       1.83x      91.7%      1.16x
+xoshiro256++ (ours)           4      5.125e+09       3.77x      94.4%      1.05x
+xoshiro256++ (ours)           8      6.620e+09       4.88x      60.9%      1.67x  <- noisy
+xoshiro256++ (ours)          16      1.025e+10       7.55x      47.2%      1.08x
+xoshiro256++ (ours)          32      1.019e+10       7.50x      23.4%      1.09x
+pcg64 (ours)                  1      8.160e+08       1.00x     100.0%      1.03x
+pcg64 (ours)                  2      1.632e+09       2.00x     100.0%      1.03x
+pcg64 (ours)                  4      3.251e+09       3.98x      99.6%      1.09x
+pcg64 (ours)                  8      4.426e+09       5.42x      67.8%      1.26x
+pcg64 (ours)                 16      6.803e+09       8.34x      52.1%      1.08x
+pcg64 (ours)                 32      6.782e+09       8.31x      26.0%      1.02x
+hmac-drbg (ours)              1      4.804e+06       1.00x     100.0%      1.02x
+hmac-drbg (ours)              2      9.549e+06       1.99x      99.4%      1.03x
+hmac-drbg (ours)              4      1.873e+07       3.90x      97.4%      1.03x
+hmac-drbg (ours)              8      2.790e+07       5.81x      72.6%      1.21x
+hmac-drbg (ours)             16      4.400e+07       9.16x      57.2%      1.03x
+hmac-drbg (ours)             32      4.401e+07       9.16x      28.6%      1.01x
+
+--------------------------------------------------------------------
+TABLE 2 of 2 -- OpenSSL backend (production; includes AES-256-CTR-DRBG)
+--------------------------------------------------------------------
+engine                  threads    u64/s (agg)     speedup efficiency     spread
+xoshiro256++ (ours)           1      1.381e+09       1.00x     100.0%      1.07x
+xoshiro256++ (ours)           2      2.728e+09       1.98x      98.8%      1.05x
+xoshiro256++ (ours)           4      5.188e+09       3.76x      93.9%      1.06x
+xoshiro256++ (ours)           8      5.963e+09       4.32x      54.0%      1.64x  <- noisy
+xoshiro256++ (ours)          16      1.025e+10       7.42x      46.4%      1.06x
+xoshiro256++ (ours)          32      1.042e+10       7.54x      23.6%      1.01x
+pcg64 (ours)                  1      8.534e+08       1.00x     100.0%      1.06x
+pcg64 (ours)                  2      1.583e+09       1.85x      92.7%      1.11x
+pcg64 (ours)                  4      3.246e+09       3.80x      95.1%      1.06x
+pcg64 (ours)                  8      5.410e+09       6.34x      79.2%      1.59x  <- noisy
+pcg64 (ours)                 16      6.879e+09       8.06x      50.4%      1.05x
+pcg64 (ours)                 32      6.711e+09       7.86x      24.6%      1.02x
+hmac-drbg (ours)              1      3.681e+06       1.00x     100.0%      1.01x
+hmac-drbg (ours)              2      6.499e+06       1.77x      88.3%      1.05x
+hmac-drbg (ours)              4      1.034e+07       2.81x      70.2%      1.03x
+hmac-drbg (ours)              8      1.348e+07       3.66x      45.8%      1.05x
+hmac-drbg (ours)             16      1.856e+07       5.04x      31.5%      1.02x
+hmac-drbg (ours)             32      1.840e+07       5.00x      15.6%      1.01x
+ctr-drbg aes-256 (ours)        1      9.496e+07       1.00x     100.0%      1.04x
+ctr-drbg aes-256 (ours)        2      1.838e+08       1.94x      96.8%      1.07x
+ctr-drbg aes-256 (ours)        4      3.499e+08       3.69x      92.1%      1.05x
+ctr-drbg aes-256 (ours)        8      4.683e+08       4.93x      61.6%      1.48x  <- noisy
+ctr-drbg aes-256 (ours)       16      7.279e+08       7.67x      47.9%      1.06x
+ctr-drbg aes-256 (ours)       32      7.257e+08       7.64x      23.9%      1.04x
+
+
+====================================================================
+MACHINE 2 of 2 -- ARM64 / macOS / Apple Clang
+====================================================================
+Apple M4 Pro: 10 performance cores + 4 efficiency cores = 14 total, no
+SMT (14 logical threads = 14 physical cores, unlike Machine 1's 8
+physical/16 logical). macOS 26.6.1, Apple clang 21.0.0. 51.5 GB RAM.
+Taken by the partner, 2026-09-12, commit 1e6cf9d base (see protocol
+note below).
+
+Both suites confirmed green after the same warm-up harness change:
+672,276/672,276 bundled, 895,552/895,552 OpenSSL -- and every
+determinism-sensitive value in the logs (mapping means, monobit
+z-scores, avalanche percentages, the modulo-bias chi2 pair) is
+byte-identical to the x86_64 run's log, not merely the pass count.
+That is the stronger determinism claim: same seeds produce the same
+stream on a different CPU architecture, OS, and compiler.
+
+PROTOCOL NOTE: the ARM64 side used an independently-written warm-up
+patch (records elapsed seconds and per-repeat throughput to STDERR,
+one line per warm-up/repeat, rather than this repo's stdout "raw
+repeats: <5 values>" line) -- written before pulling this repo's
+tools/thread_bench.cpp commit, so the two warm-up implementations
+still need reconciling before either side pulls or pushes. Functionally
+equivalent for the tables below: both are one excluded warm-up plus
+five measured, timed repeats per cell. Confirmed equivalent, not just
+asserted: the worst spread each side reports (1.164x bundled, 1.178x
+OpenSSL) matches independently between the partner's summary and the
+raw per-repeat numbers recomputed from their logs here.
+
+DOCUMENTATION GAP (2026-09-12, closed same day): the bundled-backend raw
+stderr log initially delivered, threads_bundled_arm64_retry1.txt, was an
+EARLIER, REJECTED attempt (xoshiro@1 spread 1.55x, above the 1.3x
+limit) -- not the log behind the accepted CSV. The correct log
+(threads_bundled_arm64.txt, generated 17:20:28) was supplied
+afterward and confirmed line-for-line against the CSV before being
+accepted: xoshiro@1 median 1.512e9, spread 1.16x, matching exactly.
+The retry log is kept in docs/perf_arm64/ for the record but is not the
+source of Table 1. Both tables' raw logs now match their CSVs.
+
+--------------------------------------------------------------------
+TABLE 1 of 2 -- bundled reference backend, ARM64
+--------------------------------------------------------------------
+engine                  threads    u64/s (agg)     speedup efficiency     spread
+xoshiro256++ (ours)           1      1.512e+09       1.00x     100.0%      1.16x
+xoshiro256++ (ours)           2      2.965e+09       1.96x      98.0%      1.00x
+xoshiro256++ (ours)           4      5.300e+09       3.50x      87.6%      1.03x
+xoshiro256++ (ours)           8      1.044e+10       6.90x      86.3%      1.01x
+xoshiro256++ (ours)          14      1.348e+10       8.91x      63.6%      1.14x
+xoshiro256++ (ours)          28      1.431e+10       9.46x      33.8%      1.02x
+pcg64 (ours)                  1      8.613e+08       1.00x     100.0%      1.01x
+pcg64 (ours)                  2      1.674e+09       1.94x      97.2%      1.00x
+pcg64 (ours)                  4      3.035e+09       3.52x      88.1%      1.02x
+pcg64 (ours)                  8      5.989e+09       6.95x      86.9%      1.00x
+pcg64 (ours)                 14      8.680e+09      10.08x      72.0%      1.04x
+pcg64 (ours)                 28      8.810e+09      10.23x      36.5%      1.03x
+hmac-drbg (ours)              1      5.975e+06       1.00x     100.0%      1.01x
+hmac-drbg (ours)              2      1.152e+07       1.93x      96.4%      1.02x
+hmac-drbg (ours)              4      2.083e+07       3.49x      87.1%      1.02x
+hmac-drbg (ours)              8      4.068e+07       6.81x      85.1%      1.04x
+hmac-drbg (ours)             14      5.669e+07       9.49x      67.8%      1.03x
+hmac-drbg (ours)             28      5.752e+07       9.63x      34.4%      1.02x
+
+--------------------------------------------------------------------
+TABLE 2 of 2 -- OpenSSL backend (production; includes AES-256-CTR-DRBG), ARM64
+--------------------------------------------------------------------
+engine                  threads    u64/s (agg)     speedup efficiency     spread
+xoshiro256++ (ours)           1      1.490e+09       1.00x     100.0%      1.13x
+xoshiro256++ (ours)           2      2.968e+09       1.99x      99.6%      1.01x
+xoshiro256++ (ours)           4      5.308e+09       3.56x      89.0%      1.02x
+xoshiro256++ (ours)           8      1.045e+10       7.01x      87.7%      1.01x
+xoshiro256++ (ours)          14      1.393e+10       9.35x      66.8%      1.16x
+xoshiro256++ (ours)          28      1.426e+10       9.57x      34.2%      1.12x
+pcg64 (ours)                  1      8.596e+08       1.00x     100.0%      1.00x
+pcg64 (ours)                  2      1.670e+09       1.94x      97.1%      1.02x
+pcg64 (ours)                  4      3.024e+09       3.52x      87.9%      1.03x
+pcg64 (ours)                  8      5.981e+09       6.96x      87.0%      1.00x
+pcg64 (ours)                 14      8.761e+09      10.19x      72.8%      1.18x
+pcg64 (ours)                 28      8.923e+09      10.38x      37.1%      1.03x
+hmac-drbg (ours)              1      7.074e+06       1.00x     100.0%      1.03x
+hmac-drbg (ours)              2      1.087e+07       1.54x      76.8%      1.04x
+hmac-drbg (ours)              4      1.352e+07       1.91x      47.8%      1.03x
+hmac-drbg (ours)              8      7.590e+06       1.07x      13.4%      1.04x
+hmac-drbg (ours)             14      2.758e+06       0.39x       2.8%      1.03x
+hmac-drbg (ours)             28      2.704e+06       0.38x       1.4%      1.01x
+ctr-drbg aes-256 (ours)        1      1.765e+08       1.00x     100.0%      1.05x
+ctr-drbg aes-256 (ours)        2      3.343e+08       1.89x      94.7%      1.01x
+ctr-drbg aes-256 (ours)        4      6.126e+08       3.47x      86.8%      1.04x
+ctr-drbg aes-256 (ours)        8      9.708e+08       5.50x      68.7%      1.03x
+ctr-drbg aes-256 (ours)       14      1.153e+09       6.53x      46.7%      1.05x
+ctr-drbg aes-256 (ours)       28      1.173e+09       6.65x      23.7%      1.03x
+
+Raw artifacts: docs/perf_arm64/ (CSVs, the OpenSSL raw log, the rejected
+bundled retry log, the single-core rng_bench logs, the machine record,
+and the post-warm-up test-suite logs).
+
+
+====================================================================
+WHAT THESE TABLES SHOW
+====================================================================
+
+1. NO SHARED-STATE CONTENTION -- the claim this tool exists to test.
+   The SDK's multithreading story is that every thread owns its engine and
+   nothing is shared. Two independent pieces of evidence:
+
+   (a) The oversubscribed 32-thread row does not degrade against the
+       16-thread row. Measured 32/16 aggregate ratios, all seven engine
+       instances across both tables: bundled xoshiro 0.994x, pcg64
+       0.997x, HMAC 1.000x; OpenSSL xoshiro 1.017x, pcg64 0.976x, CTR
+       0.997x, HMAC 0.991x. All seven sit within ~2.4% of flat -- inside
+       the spread already measured at those cells, so none of this is a
+       decline the data can resolve.
+
+       This is the discriminating test. Lock contention or false sharing
+       degrades SUPERLINEARLY under oversubscription, because contending
+       threads are descheduled while holding the contended resource; the
+       signature is a collapse at 2x hardware threads. There is none.
+
+   (b) The efficiency curve differs BY ENGINE on the same machine (at 16
+       threads, bundled HMAC 57.2% vs xoshiro 47.2%). Contention on shared
+       library state would fall on all engines alike, since they would be
+       contending for the same thing.
+
+   Both tables also pass the tool's stream-separation self-check, printed
+   as "streams: distinct across 32 threads for every engine (verified)" --
+   so the scaling measured is genuinely parallel work on distinct streams,
+   not the same sequence timed N times.
+
+2. THE 8-THREAD CELL IS THE ONE REPRODUCIBLY NOISY CELL, AND IS NOT FULLY
+   DIAGNOSED. Five independent rng_thread_bench invocations were run on
+   this machine while chasing this (three bundled, two OpenSSL -- the
+   original attempt, a rerun, and a further rerun after manually closing
+   browser and vendor tray apps). Every cell with spread > 1.3x, across
+   all five runs, by thread count:
+
+       thread count    times flagged (of 5 runs)    which engine(s)
+              2                  2 of 5             pcg64 (both); hmac (1)
+              8                  5 of 5             xoshiro (4); pcg64 (3);
+                                                     hmac (1); ctr-drbg (1 of 2)
+             32                  1 of 5             hmac (1)
+
+   t=8 is flagged in EVERY one of the 5 attempts, by at least one engine
+   -- no other thread count was flagged in more than 2 of 5, and the t=2
+   and t=32 flags never repeat at the same (engine, thread) pair twice,
+   which is the signature of ordinary single-run jitter rather than a
+   reproducible effect. t=8 is the only cell that is genuinely
+   reproducible, and no engine is categorically exempt from it -- even
+   hmac-drbg, usually the cleanest, hit 1.55x at t=8 in one bundled run.
+
+   This machine is an 8-core/16-thread part: 8 threads is exactly the
+   physical-core boundary, which is a plausible reason a scheduler-
+   placement effect would concentrate there specifically. Closing
+   background apps did not remove it (the cleanest single run, bundled-3,
+   was taken after closing apps and still flagged xoshiro@8 at 1.67x, the
+   session's highest value) -- arguing against generic OS/app load as the
+   sole explanation.
+
+   The new raw-per-repeat printing (added with the warm-up patch) shows
+   the SHAPE differs by engine in their noisiest runs, which matters for
+   picking a cause:
+     * pcg64 splits cleanly bimodal -- e.g. its worst run, OpenSSL@8:
+       {6.18e9, 6.41e9} vs {4.16e9, 4.04e9, 5.41e9}, a low cluster and a
+       high cluster across the 5 repeats. Consistent with SMT sibling
+       scheduling: sometimes the 8 threads land on 8 distinct physical
+       cores, sometimes some pair up on SMT siblings and contend for
+       shared execution ports.
+     * xoshiro shows one high OUTLIER per noisy run rather than a stable
+       split -- e.g. its worst run, bundled@8: {9.43e9} vs {5.64e9,
+       6.62e9, 6.87e9, 5.75e9}. More consistent with a one-off scheduling
+       or thermal/boost-clock transition than a persistent two-state split.
+
+   Both are plausible and this file does NOT choose between them -- doing
+   so needs thread-affinity pinning plus clock monitoring, which was not
+   done. Neither is a library defect, and point 1 is the reason for
+   saying so. The honest statement for the report is: linear scaling to
+   the physical core count is NOT demonstrated cleanly at exactly 8
+   threads on this box; every other cell was clean in at least 3 of 5
+   attempts, with no repeated (engine, thread) pair outside t=8. Treat
+   the ARM64 machine as the cleaner test of the 8-thread boundary
+   specifically.
+
+3. NEW FINDING -- OpenSSL's HMAC path scales WORSE, not merely slower.
+   Same machine, same session, HMAC-DRBG aggregate u64/s:
+
+       threads    bundled     OpenSSL    ratio
+             1   4.804e+06   3.681e+06    1.30x slower
+             4   1.873e+07   1.034e+07    1.81x
+            16   4.400e+07   1.856e+07    2.37x slower
+
+   Efficiency at 16 threads: 57.2% bundled vs 31.5% OpenSSL. The penalty
+   WIDENS with thread count, so it is not the constant per-call overhead
+   OPEN_RESEARCH #11 records -- there is a thread-scaling component on top
+   of it. A plausible mechanism is that OpenSSL's per-call provider fetch
+   and MAC-context setup touch shared provider state; that mechanism is a
+   HYPOTHESIS and is not verified here. The measurement is the finding.
+
+   Consequence for #11: caching an EVP_MAC_CTX is worth more than the
+   ~2x single-threaded figure suggested, because a server serving many
+   concurrent sessions is exactly the workload this penalty grows in.
+   Until it is fixed, the production (OpenSSL) build is the slower one for
+   HMAC-DRBG, and increasingly so under load.
+
+4. CTR-DRBG SCALES LIKE THE FAST ENGINES. 7.67x at 16 threads (47.9%),
+   tracking xoshiro's 7.42x/46.4% on the same machine, and holding under
+   oversubscription. AES-NI throughput parallelises across cores as
+   expected; the crypto tier does not become a scaling bottleneck.
+   No CTR-vs-HMAC ratio is quoted here -- see benchmark_results.txt for
+   why that ratio needs care about which HMAC baseline is used.
+
+5. NEW FINDING, ARM64 ONLY -- OpenSSL HMAC-DRBG THROUGHPUT COLLAPSES
+   UNDER THREADING, not merely scales worse. This is qualitatively
+   different from finding 3 above (x86_64's OpenSSL HMAC scales worse
+   than bundled, but still nets positive speedup at every thread count).
+   On ARM64, OpenSSL HMAC-DRBG aggregate throughput falls BELOW its
+   own 1-thread number as threads increase past 4, and never recovers:
+
+       threads    u64/s (agg)    speedup    efficiency
+             1     7.074e+06       1.00x       100.0%
+             2     1.087e+07       1.54x        76.8%
+             4     1.352e+07       1.91x        47.8%
+             8     7.590e+06       1.07x        13.4%
+            14     2.758e+06       0.39x         2.8%
+            28     2.704e+06       0.38x         1.4%
+
+   28-thread throughput is ~2.6x SLOWER in absolute terms than 1-thread.
+   No other engine, on either machine, does this -- every other row in
+   this file has efficiency decaying but speedup staying above 1.00x.
+   The bundled HMAC-DRBG row on this SAME ARM64 machine (Table 1) scales
+   normally (9.63x at 28 threads), so the collapse is specific to the
+   OpenSSL backend on this platform, not to HMAC-DRBG as an algorithm
+   and not to the machine generally.
+
+   Per the agreed protocol, NO CAUSE IS ASSIGNED HERE. It is recorded as
+   a measurement pending investigation. It is consistent in direction
+   with finding 3 (OpenSSL's HMAC path involving some form of shared or
+   contended per-call state) but far more severe -- and a single shared
+   cause across both platforms looks unlikely, since benchmark_results.txt
+   (Machine 2 there) shows OpenSSL HMAC is *faster* than bundled HMAC
+   single-threaded on this same ARM64 machine: x86_64 OpenSSL HMAC is
+   slower AND scales worse; ARM64 OpenSSL HMAC is faster single-threaded
+   AND collapses under threading. Two different platform-specific
+   effects sharing the same OPEN_RESEARCH #11 area, not one effect
+   measured twice.
+
+6. CROSS-ARCHITECTURE, SAME-PROTOCOL COMPARISON (t=1 rows, both machines,
+   both taken 2026-09-12 under the identical warm-up-patched harness):
+
+       engine (build)              x86_64 (Ryzen)   ARM64 (M4 Pro)   ratio
+       xoshiro bundled                1.358e+09        1.512e+09    1.11x ARM
+       xoshiro OpenSSL                 1.381e+09        1.490e+09    1.08x ARM
+       pcg64 bundled                   8.160e+08        8.613e+08    1.06x ARM
+       pcg64 OpenSSL                   8.534e+08        8.596e+08    1.01x ARM
+       hmac-drbg bundled               4.804e+06        5.975e+06    1.24x ARM
+       hmac-drbg OpenSSL                3.681e+06        7.074e+06    1.92x ARM
+       ctr-drbg OpenSSL                 9.496e+07        1.765e+08    1.86x ARM
+
+   ARM64 leads at t=1 on every engine measured, most sharply for the two
+   OpenSSL crypto rows -- consistent with finding 5's observation that
+   this machine's OpenSSL crypto path behaves differently (not merely
+   "slower" or "faster" but differently shaped) than the x86_64 build's.
+   This is a single-thread, same-day, same-protocol comparison; it is
+   NOT a substitute for benchmark_results.txt's rng_bench medians, whose
+   own cross-architecture section (Machine 2 there) carries the caveat
+   that its x86_64 baseline is a different, older machine and should not
+   be used for a same-protocol ratio -- these t=1 rows are offered
+   instead for exactly that purpose.
+
+
+====================================================================
+APPENDIX, 2026-09-13: OPEN_RESEARCH #11 FIXED ON x86_64
+====================================================================
+
+crypto/hmac_sha256.hpp stopped calling OpenSSL's one-shot HMAC() and now
+holds a per-thread EVP_MAC_CTX with the digest bound once. Same tool, same
+box, same --repeats 5, same session. The bundled rows are the control:
+they were re-run alongside and land on their pre-fix values, so the box
+had not drifted between the two measurements.
+
+engine                  threads    u64/s (agg)     speedup efficiency     spread
+  OpenSSL HMAC-DRBG, BEFORE (Table 2 above)
+hmac-drbg (ours)              1      3.681e+06       1.00x     100.0%      1.01x
+hmac-drbg (ours)              2      6.499e+06       1.77x      88.3%      1.05x
+hmac-drbg (ours)              4      1.034e+07       2.81x      70.2%      1.03x
+hmac-drbg (ours)              8      1.348e+07       3.66x      45.8%      1.05x
+hmac-drbg (ours)             16      1.856e+07       5.04x      31.5%      1.02x
+hmac-drbg (ours)             32      1.840e+07       5.00x      15.6%      1.01x
+
+  OpenSSL HMAC-DRBG, AFTER
+hmac-drbg (ours)              1      1.332e+07       1.00x     100.0%      1.03x
+hmac-drbg (ours)              2      2.342e+07       1.76x      87.9%      1.22x
+hmac-drbg (ours)              4      4.112e+07       3.09x      77.2%      1.11x
+hmac-drbg (ours)              8      5.554e+07       4.17x      52.1%      1.10x
+hmac-drbg (ours)             16      8.190e+07       6.15x      38.4%      1.05x
+hmac-drbg (ours)             32      9.013e+07       6.77x      21.1%      1.01x
+
+  bundled HMAC-DRBG, control re-run (compare against Table 1 above)
+hmac-drbg (ours)              1      4.797e+06       1.00x     100.0%      1.04x
+hmac-drbg (ours)              2      9.276e+06       1.93x      96.7%      1.05x
+hmac-drbg (ours)              4      1.852e+07       3.86x      96.5%      1.04x
+hmac-drbg (ours)              8      2.650e+07       5.52x      69.1%      1.19x
+hmac-drbg (ours)             16      4.300e+07       8.96x      56.0%      1.01x
+hmac-drbg (ours)             32      4.253e+07       8.87x      27.7%      1.02x
+
+WHAT THE NUMBERS SAY. Aggregate throughput rose 3.62x at 1 thread and
+4.41x at 16, and the gap widens with thread count, which is the shape the
+hypothesis predicted: the removed work was per-call setup touching shared
+provider state, so the more threads calling it, the more it cost. Finding
+(b) of 2026-09-11 is reversed on this platform. Bundled over OpenSSL was
+1.29x at 1 thread and 2.42x at 16; it is now 0.36x and 0.53x, i.e. OpenSSL
+is faster at every thread count measured.
+
+WHAT THE NUMBERS DO NOT SAY. Scaling efficiency is still lower than the
+bundled path (38.4% against 56.0% at 16 threads), so some per-call shared
+state remains. It no longer costs enough to matter at any measured thread
+count, but "improved" is not "eliminated" and the row should not be
+described as contention-free.
+
+ARM64 IS THE OPEN HALF. The 0.38x collapse at 28 threads in Table 4 was
+measured on pre-fix code. The mechanism just removed is a plausible cause
+and the x86_64 improvement is consistent with it, but plausible is not
+measured, and #11 already warns against assuming one shared mechanism
+across the two platforms. The partner re-runs rng_thread_bench and
+rng_bench on the M4 Pro, OpenSSL config, before Table 4 is either trusted
+or retracted.

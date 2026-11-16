@@ -1,0 +1,50 @@
+rng_stream cross-platform determinism fingerprints
+==================================================
+
+First 32 bytes of every source at the default settings (--seed 1, and
+--pf-bytes-per-nonce 32 for the pf source), hex-encoded.
+
+Purpose: the statistical batteries run on a macOS machine built with clang,
+while development happens on Windows with MSVC. If the two builds disagree by
+even one byte, every battery log is unattributable to the SDK. Confirm this
+table matches BEFORE starting any run — it costs thirty seconds and it is the
+difference between a result and a rumour.
+
+Reproduce:
+
+    rng_stream --source xoshiro --seed 1 --bytes 32 | xxd -p -c 32
+
+On Windows use cmd.exe redirection, not PowerShell's `>` — PowerShell's `>`
+is Out-File, which decodes stdout as text and re-encodes it, corrupting
+binary output and inflating the byte count.
+
+    source    first 32 bytes
+    -------   ----------------------------------------------------------------
+    xoshiro   9bc2036f7fd0c5cf8de03f96324142bf20f5aa57577da319d656cd059f1108bf
+    pcg64     d61266d7f9b5a7534286896f3e437f634098f91b6dc86527b0219ceb38d31e78
+    hmac      2db283af2967306f9f16b8285fef7c389266af5402dc5347a3f7e54c804bc3b6
+    ctr       68237f540cd9270ee6e8d5e1e226aeb913d3ea94604be9ebc6127761c333dd65
+    pf        f907af13077cc2450cbb6bb5ba108cc5349f52d634119dc6f7521955ad54e00b
+    randu     0006002400a20288097e222c779a9a1067f7053977a29ec883ff82f16dabf785
+
+`ctr` exists only in builds configured with -DRNGSDK_USE_OPENSSL=ON; in the
+bundled build the source is rejected with an explanatory error.
+
+Endianness: the four engine rows (xoshiro, pcg64, hmac, ctr) are
+little-endian values. `Random::NextBytes` memcpys a 64-bit word in NATIVE byte
+order, so a big-endian host would produce each 8-byte group reversed. Every
+machine in play is little-endian — x86-64 on the development side, and either
+x86-64 or ARM64 on the macOS run machine (Apple Silicon is little-endian) — so
+this table applies as printed on all of them. The `pf` and
+`randu` rows are endian-stable by construction (HMAC output and an explicit
+big-endian 16-bit pack respectively) — which is the half that matters, since
+`pf` is the stream Provably Fair verification depends on.
+
+The same constants are asserted by `TestStreamFingerprints` in
+tests/test_main.cpp, so this file and the code cannot drift apart silently.
+
+Note on randu: the small leading values (0006, 0024, 00a2, ...) are genuine —
+RANDU is a multiplicative LCG, so a small seed ramps up slowly. It is the
+deliberately broken negative control and MUST fail the batteries.
+
+Generated 2026-08-18 from build-openssl (MSVC 19.37, Release, x64).

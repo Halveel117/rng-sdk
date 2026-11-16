@@ -1,0 +1,39 @@
+rng_thread_bench — warm-up protocol (2026-09-12)
+=================================================
+
+Change (tools/thread_bench.cpp, Benchmark()):
+  For every (engine, thread-count) cell, run RunCell() once, untimed,
+  and discard the result BEFORE the 5 recorded repeats. Rationale:
+  ARM64 bundled run showed xoshiro at 1 thread with min/median spread
+  1.54-1.56x (limit 1.3x), not reproduced at any other cell; harness
+  had no warm-up, so first-touch / thread-creation jitter on the first
+  timed repeat was the suspect. No RNG engine code changed.
+
+  Also added: raw per-repeat timings are now printed to stdout for
+  every cell (`raw repeats: <5 values>`), so a future outlier can be
+  attributed to a specific repeat instead of only min/median/max.
+  CSV schema is unchanged (engine,threads,median,min,max,speedup,
+  efficiency,repeats).
+
+Verification done on this machine (x86_64, Ryzen 7 260, Windows,
+MSVC 19.51) before handing this off:
+  - Both configs (build/, build-openssl/) rebuilt clean, warning-free.
+  - Full test suites re-run: 672276/672276 bundled, 895552/895552
+    OpenSSL -- identical to the pre-patch counts, confirming the
+    harness change touched nothing behavioral.
+  - x86_64 threaded benchmark will be re-run under this same patched
+    binary and its logs/CSVs will replace the existing
+    docs/perf_x86_64/ artifacts (not appended alongside them), so the
+    final report never compares pre- and post-warm-up numbers across
+    architectures.
+
+For the ARM64 side, please:
+  1. Pull this commit, rebuild both configs on the ARM64 box.
+  2. Re-run rng_thread_bench for both configs at the same repeats (5)
+     and word counts as before, with --csv as before.
+  3. Re-run both test suites and confirm the same PASS counts above
+     (672276 bundled / 895552 OpenSSL) -- if they differ, stop, that's
+     a determinism problem, not a benchmark problem.
+  4. Send back the new CSVs/logs. If the xoshiro/1-thread spread is
+     still above 1.3x after the warm-up, say so plainly -- per the
+     agreed protocol we stop and report rather than iterate further.

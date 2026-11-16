@@ -1,0 +1,31 @@
+# Normalize line endings so the repo is identical regardless of who clones it.
+# Without this, a Windows dev and a Linux dev produce diffs where every line
+# appears changed — a classic and very annoying cross-platform git failure.
+#
+# "text=auto" -> git stores LF internally, checks out the platform's native
+# ending. This is the correct default for a cross-platform source deliverable.
+* text=auto
+
+# Source and docs: always LF in the repository.
+*.hpp   text eol=lf
+*.cpp   text eol=lf
+*.h     text eol=lf
+*.c     text eol=lf
+*.py    text eol=lf
+*.md    text eol=lf
+*.txt   text eol=lf
+*.csv   text eol=lf
+*.json  text eol=lf
+*.cmake text eol=lf
+CMakeLists.txt text eol=lf
+LICENSE text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# Binary: never touch, never diff as text.
+*.pdf   binary
+*.png   binary
+*.jpg   binary
+*.exe   binary
+*.dll   binary
+*.lib   binary

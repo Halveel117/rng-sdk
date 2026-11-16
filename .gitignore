@@ -1,0 +1,76 @@
+# --- Build output ---------------------------------------------------------
+# Everything here is regenerable from source + CMake. Never commit binaries:
+# they are platform/compiler-specific and go stale silently.
+build/
+# One build dir per backend/config, e.g. build-openssl/ (-DRNGSDK_USE_OPENSSL=ON).
+build-*/
+out/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+CMakeUserPresets.json
+Testing/
+install_manifest.txt
+
+# --- Compiled objects & binaries ------------------------------------------
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.pdb
+*.ilk
+*.exp
+
+# --- MSVC / Visual Studio -------------------------------------------------
+.vs/
+*.user
+*.suo
+*.VC.db
+*.VC.opendb
+
+# --- Python (tests/golden/generate_golden.py) -----------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- OS noise -------------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# --- Editor scratch -------------------------------------------------------
+*.swp
+*~
+
+# --- Agent tooling --------------------------------------------------------
+# Unlike .vscode/ below, .claude/ is NOT part of the "clone and it works"
+# story for a licensee: it configures an AI harness, not the build. And
+# settings.local.json carries machine-specific absolute paths (session temp
+# directories, this developer's toolchain layout), which must never ship.
+.claude/
+# Same category: a code-index cache for an AI harness, not product, and it
+# is regenerable from the source it indexes.
+.tokensave/
+
+# NOTE: rng-sdk/.vscode/ is deliberately TRACKED. tasks.json / launch.json are
+# project configuration (build, run tests, run benchmark) and part of the
+# "clone and it works" story, not personal settings.
+#
+# NOTE: docs/pi_results.*, docs/benchmark_results.txt are deliberately TRACKED.
+# They are generated, but they are also cited results — tracking them makes
+# changes to measured output visible in diffs. Regenerate via rng_pi --csv and
+# the "Run benchmark" task; do not hand-edit.
+
+# --- Superpowers SDD scratch ----------------------------------------------
+# Per-plan agent workspace (ledger, briefs, review packages). Regenerable
+# coordination scratch, not product.
+.superpowers/
+
+# Editor config (machine-specific paths)
+.vscode/

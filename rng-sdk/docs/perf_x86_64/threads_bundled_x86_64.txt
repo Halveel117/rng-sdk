@@ -1,0 +1,65 @@
+﻿compiler:   MSVC 1951
+arch:       x86-64
+build:      Release (NDEBUG)
+crypto:     bundled reference backend (no CTR-DRBG row)
+generated:  2026-09-12 18:19:36
+hw_threads: 16 (hardware_concurrency)
+words:      50000000 per thread (hmac rows n/25, ctr rows n/5)
+repeats:    5 per cell, median reported
+
+streams:    distinct across 32 threads for every engine (verified)
+
+engine                  threads    u64/s (agg)     speedup efficiency     spread
+  raw repeats: 1.343e+09 1.345e+09 1.388e+09 1.371e+09 1.358e+09
+xoshiro256++ (ours)           1      1.358e+09       1.00x     100.0%      1.03x
+  raw repeats: 2.489e+09 2.410e+09 2.642e+09 2.637e+09 2.279e+09
+xoshiro256++ (ours)           2      2.489e+09       1.83x      91.7%      1.16x
+  raw repeats: 5.065e+09 5.291e+09 5.269e+09 5.125e+09 5.019e+09
+xoshiro256++ (ours)           4      5.125e+09       3.77x      94.4%      1.05x
+  raw repeats: 9.428e+09 5.642e+09 6.620e+09 6.867e+09 5.754e+09
+xoshiro256++ (ours)           8      6.620e+09       4.88x      60.9%      1.67x
+  raw repeats: 9.900e+09 1.025e+10 1.072e+10 1.000e+10 1.055e+10
+xoshiro256++ (ours)          16      1.025e+10       7.55x      47.2%      1.08x
+  raw repeats: 9.436e+09 1.031e+10 1.026e+10 1.010e+10 1.019e+10
+xoshiro256++ (ours)          32      1.019e+10       7.50x      23.4%      1.09x
+  raw repeats: 8.160e+08 8.172e+08 8.061e+08 8.326e+08 8.105e+08
+pcg64 (ours)                  1      8.160e+08       1.00x     100.0%      1.03x
+  raw repeats: 1.641e+09 1.624e+09 1.629e+09 1.632e+09 1.673e+09
+pcg64 (ours)                  2      1.632e+09       2.00x     100.0%      1.03x
+  raw repeats: 3.009e+09 3.268e+09 3.216e+09 3.293e+09 3.251e+09
+pcg64 (ours)                  4      3.251e+09       3.98x      99.6%      1.09x
+  raw repeats: 4.328e+09 3.567e+09 4.465e+09 4.483e+09 4.426e+09
+pcg64 (ours)                  8      4.426e+09       5.42x      67.8%      1.26x
+  raw repeats: 6.732e+09 6.803e+09 7.024e+09 7.162e+09 6.602e+09
+pcg64 (ours)                 16      6.803e+09       8.34x      52.1%      1.08x
+  raw repeats: 6.761e+09 6.890e+09 6.793e+09 6.782e+09 6.754e+09
+pcg64 (ours)                 32      6.782e+09       8.31x      26.0%      1.02x
+  raw repeats: 4.788e+06 4.804e+06 4.854e+06 4.750e+06 4.810e+06
+hmac-drbg (ours)              1      4.804e+06       1.00x     100.0%      1.02x
+  raw repeats: 9.546e+06 9.659e+06 9.564e+06 9.549e+06 9.365e+06
+hmac-drbg (ours)              2      9.549e+06       1.99x      99.4%      1.03x
+  raw repeats: 1.892e+07 1.891e+07 1.873e+07 1.838e+07 1.862e+07
+hmac-drbg (ours)              4      1.873e+07       3.90x      97.4%      1.03x
+  raw repeats: 2.648e+07 2.672e+07 2.790e+07 2.944e+07 3.198e+07
+hmac-drbg (ours)              8      2.790e+07       5.81x      72.6%      1.21x
+  raw repeats: 4.394e+07 4.467e+07 4.430e+07 4.330e+07 4.400e+07
+hmac-drbg (ours)             16      4.400e+07       9.16x      57.2%      1.03x
+  raw repeats: 4.434e+07 4.394e+07 4.401e+07 4.418e+07 4.376e+07
+hmac-drbg (ours)             32      4.401e+07       9.16x      28.6%      1.01x
+
+speedup    = median throughput at T threads / median at 1 thread.
+efficiency = speedup / T. 100% is perfectly linear scaling; the last
+             row is deliberately oversubscribed (2x hardware threads)
+             and is EXPECTED to sit near 50% -- that is the scheduler
+             time-slicing, not lock contention. A COLLAPSE there, or
+             efficiency falling off well before the core count, would
+             be the finding worth chasing.
+spread     = max/min across repeats. Treat a cell above ~1.3x as noise-
+             dominated and re-run on an idle machine -- see the load
+             warning in rng_bench and OPEN_RESEARCH #7c(a).
+
+Machines with heterogeneous cores (Apple P/E, Intel P/E) will show
+efficiency sagging once the scheduler starts filling efficiency cores.
+That is the hardware, not the library: report the core split alongside.
+
+wrote docs\perf_x86_64\threads_bundled_x86_64.csv

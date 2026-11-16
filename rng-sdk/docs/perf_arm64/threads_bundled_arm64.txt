@@ -1,0 +1,155 @@
+compiler:   clang 21.0.0
+arch:       arm64
+build:      Release (NDEBUG)
+crypto:     bundled reference backend (no CTR-DRBG row)
+generated:  2026-09-12 17:20:28
+hw_threads: 14 (hardware_concurrency)
+words:      50000000 per thread (hmac rows n/25, ctr rows n/5)
+repeats:    5 per cell, median reported
+
+streams:    distinct across 28 threads for every engine (verified)
+
+engine                  threads    u64/s (agg)     speedup efficiency     spread
+warmup engine="xoshiro256++ (ours)" threads=1 elapsed_s=0.053636957999999998 u64_per_s=932193059.86741459
+repeat engine="xoshiro256++ (ours)" threads=1 repeat=1 elapsed_s=0.038263499999999999 u64_per_s=1306728344.2445149
+repeat engine="xoshiro256++ (ours)" threads=1 repeat=2 elapsed_s=0.033327791000000002 u64_per_s=1500249446.4754653
+repeat engine="xoshiro256++ (ours)" threads=1 repeat=3 elapsed_s=0.033059041999999997 u64_per_s=1512445520.9561126
+repeat engine="xoshiro256++ (ours)" threads=1 repeat=4 elapsed_s=0.032884792000000003 u64_per_s=1520459670.2329757
+repeat engine="xoshiro256++ (ours)" threads=1 repeat=5 elapsed_s=0.033053708000000001 u64_per_s=1512689589.9243739
+xoshiro256++ (ours)           1      1.512e+09       1.00x     100.0%      1.16x
+warmup engine="xoshiro256++ (ours)" threads=2 elapsed_s=0.033565167 u64_per_s=2979279084.1767597
+repeat engine="xoshiro256++ (ours)" threads=2 repeat=1 elapsed_s=0.033727541 u64_per_s=2964935985.1048732
+repeat engine="xoshiro256++ (ours)" threads=2 repeat=2 elapsed_s=0.033736707999999997 u64_per_s=2964130347.2763262
+repeat engine="xoshiro256++ (ours)" threads=2 repeat=3 elapsed_s=0.033702583000000001 u64_per_s=2967131629.050509
+repeat engine="xoshiro256++ (ours)" threads=2 repeat=4 elapsed_s=0.033656499999999999 u64_per_s=2971194271.5374446
+repeat engine="xoshiro256++ (ours)" threads=2 repeat=5 elapsed_s=0.033772249999999997 u64_per_s=2961010889.1175451
+xoshiro256++ (ours)           2      2.965e+09       1.96x      98.0%      1.00x
+warmup engine="xoshiro256++ (ours)" threads=4 elapsed_s=0.037825457999999999 u64_per_s=5287444239.273983
+repeat engine="xoshiro256++ (ours)" threads=4 repeat=1 elapsed_s=0.037886625 u64_per_s=5278907793.9774256
+repeat engine="xoshiro256++ (ours)" threads=4 repeat=2 elapsed_s=0.036798457999999999 u64_per_s=5435010347.4444504
+repeat engine="xoshiro256++ (ours)" threads=4 repeat=3 elapsed_s=0.037733333000000001 u64_per_s=5300353403.7133694
+repeat engine="xoshiro256++ (ours)" threads=4 repeat=4 elapsed_s=0.037717709000000002 u64_per_s=5302548996.281826
+repeat engine="xoshiro256++ (ours)" threads=4 repeat=5 elapsed_s=0.037748083000000002 u64_per_s=5298282299.5276337
+xoshiro256++ (ours)           4      5.300e+09       3.50x      87.6%      1.03x
+warmup engine="xoshiro256++ (ours)" threads=8 elapsed_s=0.038191749999999997 u64_per_s=10473466128.155951
+repeat engine="xoshiro256++ (ours)" threads=8 repeat=1 elapsed_s=0.038452541 u64_per_s=10402433482.874382
+repeat engine="xoshiro256++ (ours)" threads=8 repeat=2 elapsed_s=0.038369667000000003 u64_per_s=10424901524.425529
+repeat engine="xoshiro256++ (ours)" threads=8 repeat=3 elapsed_s=0.038032249999999997 u64_per_s=10517389846.774778
+repeat engine="xoshiro256++ (ours)" threads=8 repeat=4 elapsed_s=0.038132082999999997 u64_per_s=10489854435.6992
+repeat engine="xoshiro256++ (ours)" threads=8 repeat=5 elapsed_s=0.038328416999999997 u64_per_s=10436121063.909319
+xoshiro256++ (ours)           8      1.044e+10       6.90x      86.3%      1.01x
+warmup engine="xoshiro256++ (ours)" threads=14 elapsed_s=0.049505166000000003 u64_per_s=14139938446.019957
+repeat engine="xoshiro256++ (ours)" threads=14 repeat=1 elapsed_s=0.055782875000000003 u64_per_s=12548654044.81214
+repeat engine="xoshiro256++ (ours)" threads=14 repeat=2 elapsed_s=0.054604959000000002 u64_per_s=12819348513.749456
+repeat engine="xoshiro256++ (ours)" threads=14 repeat=3 elapsed_s=0.050425708 u64_per_s=13881808065.044918
+repeat engine="xoshiro256++ (ours)" threads=14 repeat=4 elapsed_s=0.051944958999999999 u64_per_s=13475802339.164423
+repeat engine="xoshiro256++ (ours)" threads=14 repeat=5 elapsed_s=0.049123708000000002 u64_per_s=14249738639.436583
+xoshiro256++ (ours)          14      1.348e+10       8.91x      63.6%      1.14x
+warmup engine="xoshiro256++ (ours)" threads=28 elapsed_s=0.10125704200000001 u64_per_s=13826198873.160841
+repeat engine="xoshiro256++ (ours)" threads=28 repeat=1 elapsed_s=0.097863124999999995 u64_per_s=14305694816.101572
+repeat engine="xoshiro256++ (ours)" threads=28 repeat=2 elapsed_s=0.098223124999999994 u64_per_s=14253262660.905973
+repeat engine="xoshiro256++ (ours)" threads=28 repeat=3 elapsed_s=0.096553417000000002 u64_per_s=14499745772.850275
+repeat engine="xoshiro256++ (ours)" threads=28 repeat=4 elapsed_s=0.096292457999999997 u64_per_s=14539041053.454052
+repeat engine="xoshiro256++ (ours)" threads=28 repeat=5 elapsed_s=0.098483666999999997 u64_per_s=14215555153.932276
+xoshiro256++ (ours)          28      1.431e+10       9.46x      33.8%      1.02x
+warmup engine="pcg64 (ours)" threads=1 elapsed_s=0.058033000000000001 u64_per_s=861578756.91416955
+repeat engine="pcg64 (ours)" threads=1 repeat=1 elapsed_s=0.058128832999999998 u64_per_s=860158331.40844238
+repeat engine="pcg64 (ours)" threads=1 repeat=2 elapsed_s=0.057752541999999997 u64_per_s=865762757.24798405
+repeat engine="pcg64 (ours)" threads=1 repeat=3 elapsed_s=0.057626790999999997 u64_per_s=867651991.93548715
+repeat engine="pcg64 (ours)" threads=1 repeat=4 elapsed_s=0.058121375000000003 u64_per_s=860268704.92998481
+repeat engine="pcg64 (ours)" threads=1 repeat=5 elapsed_s=0.058050667 u64_per_s=861316546.11307049
+pcg64 (ours)                  1      8.613e+08       1.00x     100.0%      1.01x
+warmup engine="pcg64 (ours)" threads=2 elapsed_s=0.059525291000000001 u64_per_s=1679958187.8566539
+repeat engine="pcg64 (ours)" threads=2 repeat=1 elapsed_s=0.059562166999999999 u64_per_s=1678918095.7771399
+repeat engine="pcg64 (ours)" threads=2 repeat=2 elapsed_s=0.059744375000000002 u64_per_s=1673797742.4652948
+repeat engine="pcg64 (ours)" threads=2 repeat=3 elapsed_s=0.059789833000000001 u64_per_s=1672525159.9214201
+repeat engine="pcg64 (ours)" threads=2 repeat=4 elapsed_s=0.059697792 u64_per_s=1675103829.635776
+repeat engine="pcg64 (ours)" threads=2 repeat=5 elapsed_s=0.059730249999999999 u64_per_s=1674193561.8886578
+pcg64 (ours)                  2      1.674e+09       1.94x      97.2%      1.00x
+warmup engine="pcg64 (ours)" threads=4 elapsed_s=0.065324999999999994 u64_per_s=3061615001.9135098
+repeat engine="pcg64 (ours)" threads=4 repeat=1 elapsed_s=0.066338083000000006 u64_per_s=3014859503.8539171
+repeat engine="pcg64 (ours)" threads=4 repeat=2 elapsed_s=0.064834584000000001 u64_per_s=3084773398.0987678
+repeat engine="pcg64 (ours)" threads=4 repeat=3 elapsed_s=0.065287665999999994 u64_per_s=3063365751.1971712
+repeat engine="pcg64 (ours)" threads=4 repeat=4 elapsed_s=0.065889084000000001 u64_per_s=3035404164.9751878
+repeat engine="pcg64 (ours)" threads=4 repeat=5 elapsed_s=0.066127249999999999 u64_per_s=3024471757.1046734
+pcg64 (ours)                  4      3.035e+09       3.52x      88.1%      1.02x
+warmup engine="pcg64 (ours)" threads=8 elapsed_s=0.067151291000000002 u64_per_s=5956698583.7993793
+repeat engine="pcg64 (ours)" threads=8 repeat=1 elapsed_s=0.066707374999999999 u64_per_s=5996338485.8121014
+repeat engine="pcg64 (ours)" threads=8 repeat=2 elapsed_s=0.066793000000000005 u64_per_s=5988651505.3972721
+repeat engine="pcg64 (ours)" threads=8 repeat=3 elapsed_s=0.066790165999999998 u64_per_s=5988905612.2423773
+repeat engine="pcg64 (ours)" threads=8 repeat=4 elapsed_s=0.066838375000000005 u64_per_s=5984585950.8104429
+repeat engine="pcg64 (ours)" threads=8 repeat=5 elapsed_s=0.066852915999999998 u64_per_s=5983284259.4330521
+pcg64 (ours)                  8      5.989e+09       6.95x      86.9%      1.00x
+warmup engine="pcg64 (ours)" threads=14 elapsed_s=0.085321166000000004 u64_per_s=8204294817.068018
+repeat engine="pcg64 (ours)" threads=14 repeat=1 elapsed_s=0.078890957999999997 u64_per_s=8873006713.8999634
+repeat engine="pcg64 (ours)" threads=14 repeat=2 elapsed_s=0.081752249999999999 u64_per_s=8562455467.5865192
+repeat engine="pcg64 (ours)" threads=14 repeat=3 elapsed_s=0.080641875000000002 u64_per_s=8680353724.4142704
+repeat engine="pcg64 (ours)" threads=14 repeat=4 elapsed_s=0.082424082999999995 u64_per_s=8492663485.2583075
+repeat engine="pcg64 (ours)" threads=14 repeat=5 elapsed_s=0.079861708000000003 u64_per_s=8765151879.7970104
+pcg64 (ours)                 14      8.680e+09      10.08x      72.0%      1.04x
+warmup engine="pcg64 (ours)" threads=28 elapsed_s=0.158349875 u64_per_s=8841181592.3441677
+repeat engine="pcg64 (ours)" threads=28 repeat=1 elapsed_s=0.15908600000000001 u64_per_s=8800271551.2364388
+repeat engine="pcg64 (ours)" threads=28 repeat=2 elapsed_s=0.15891070800000001 u64_per_s=8809978997.7652092
+repeat engine="pcg64 (ours)" threads=28 repeat=3 elapsed_s=0.15755504200000001 u64_per_s=8885783547.3142147
+repeat engine="pcg64 (ours)" threads=28 repeat=4 elapsed_s=0.15898124999999999 u64_per_s=8806069898.1798172
+repeat engine="pcg64 (ours)" threads=28 repeat=5 elapsed_s=0.154884625 u64_per_s=9038986277.6889572
+pcg64 (ours)                 28      8.810e+09      10.23x      36.5%      1.03x
+warmup engine="hmac-drbg (ours)" threads=1 elapsed_s=0.33679645899999999 u64_per_s=5938304.7135896403
+repeat engine="hmac-drbg (ours)" threads=1 repeat=1 elapsed_s=0.334720833 u64_per_s=5975128.533454624
+repeat engine="hmac-drbg (ours)" threads=1 repeat=2 elapsed_s=0.33659883400000001 u64_per_s=5941791.230328504
+repeat engine="hmac-drbg (ours)" threads=1 repeat=3 elapsed_s=0.33415162500000001 u64_per_s=5985306.8199204477
+repeat engine="hmac-drbg (ours)" threads=1 repeat=4 elapsed_s=0.33422341700000002 u64_per_s=5984021.161509458
+repeat engine="hmac-drbg (ours)" threads=1 repeat=5 elapsed_s=0.33598758299999998 u64_per_s=5952600.9328743564
+hmac-drbg (ours)              1      5.975e+06       1.00x     100.0%      1.01x
+warmup engine="hmac-drbg (ours)" threads=2 elapsed_s=0.34162008300000002 u64_per_s=11708913.494994964
+repeat engine="hmac-drbg (ours)" threads=2 repeat=1 elapsed_s=0.34260241699999999 u64_per_s=11675340.866027808
+repeat engine="hmac-drbg (ours)" threads=2 repeat=2 elapsed_s=0.34890170799999998 u64_per_s=11464546.914743107
+repeat engine="hmac-drbg (ours)" threads=2 repeat=3 elapsed_s=0.34731479100000001 u64_per_s=11516929.608678831
+repeat engine="hmac-drbg (ours)" threads=2 repeat=4 elapsed_s=0.34244208300000001 u64_per_s=11680807.349837314
+repeat engine="hmac-drbg (ours)" threads=2 repeat=5 elapsed_s=0.34968300000000002 u64_per_s=11438931.832545476
+hmac-drbg (ours)              2      1.152e+07       1.93x      96.4%      1.02x
+warmup engine="hmac-drbg (ours)" threads=4 elapsed_s=0.38390429100000001 u64_per_s=20838527.173430316
+repeat engine="hmac-drbg (ours)" threads=4 repeat=1 elapsed_s=0.38077045900000001 u64_per_s=21010033.238949347
+repeat engine="hmac-drbg (ours)" threads=4 repeat=2 elapsed_s=0.38341566700000002 u64_per_s=20865083.742130965
+repeat engine="hmac-drbg (ours)" threads=4 repeat=3 elapsed_s=0.38411962500000002 u64_per_s=20826845.282898523
+repeat engine="hmac-drbg (ours)" threads=4 repeat=4 elapsed_s=0.39023970800000002 u64_per_s=20500220.341493286
+repeat engine="hmac-drbg (ours)" threads=4 repeat=5 elapsed_s=0.38418387500000001 u64_per_s=20823362.250693109
+hmac-drbg (ours)              4      2.083e+07       3.49x      87.1%      1.02x
+warmup engine="hmac-drbg (ours)" threads=8 elapsed_s=0.39311012499999998 u64_per_s=40701063.092689358
+repeat engine="hmac-drbg (ours)" threads=8 repeat=1 elapsed_s=0.39161358299999999 u64_per_s=40856601.237960637
+repeat engine="hmac-drbg (ours)" threads=8 repeat=2 elapsed_s=0.39051829199999999 u64_per_s=40971192.202182427
+repeat engine="hmac-drbg (ours)" threads=8 repeat=3 elapsed_s=0.39497533299999998 u64_per_s=40508858.815241508
+repeat engine="hmac-drbg (ours)" threads=8 repeat=4 elapsed_s=0.40473879200000001 u64_per_s=39531669.106725998
+repeat engine="hmac-drbg (ours)" threads=8 repeat=5 elapsed_s=0.39333295800000001 u64_per_s=40678004.918164015
+hmac-drbg (ours)              8      4.068e+07       6.81x      85.1%      1.04x
+warmup engine="hmac-drbg (ours)" threads=14 elapsed_s=0.48944304100000002 u64_per_s=57207882.540922672
+repeat engine="hmac-drbg (ours)" threads=14 repeat=1 elapsed_s=0.49394012500000001 u64_per_s=56687032.664131105
+repeat engine="hmac-drbg (ours)" threads=14 repeat=2 elapsed_s=0.50302691700000002 u64_per_s=55663025.284986883
+repeat engine="hmac-drbg (ours)" threads=14 repeat=3 elapsed_s=0.489101167 u64_per_s=57247869.948345475
+repeat engine="hmac-drbg (ours)" threads=14 repeat=4 elapsed_s=0.49763533399999998 u64_per_s=56266101.072316542
+repeat engine="hmac-drbg (ours)" threads=14 repeat=5 elapsed_s=0.48987408399999999 u64_per_s=57157544.998849131
+hmac-drbg (ours)             14      5.669e+07       9.49x      67.8%      1.03x
+warmup engine="hmac-drbg (ours)" threads=28 elapsed_s=0.98269862500000005 u64_per_s=56985935.031709239
+repeat engine="hmac-drbg (ours)" threads=28 repeat=1 elapsed_s=0.97155616600000005 u64_per_s=57639488.029351868
+repeat engine="hmac-drbg (ours)" threads=28 repeat=2 elapsed_s=0.96490279199999995 u64_per_s=58036934.356803067
+repeat engine="hmac-drbg (ours)" threads=28 repeat=3 elapsed_s=0.98040254100000002 u64_per_s=57119395.001649633
+repeat engine="hmac-drbg (ours)" threads=28 repeat=4 elapsed_s=0.9759565 u64_per_s=57379606.57057973
+repeat engine="hmac-drbg (ours)" threads=28 repeat=5 elapsed_s=0.97352375000000002 u64_per_s=57522993.147316642
+hmac-drbg (ours)             28      5.752e+07       9.63x      34.4%      1.02x
+
+speedup    = median throughput at T threads / median at 1 thread.
+efficiency = speedup / T. 100% is perfectly linear scaling; the last
+             row is deliberately oversubscribed (2x hardware threads)
+             and is EXPECTED to sit near 50% -- that is the scheduler
+             time-slicing, not lock contention. A COLLAPSE there, or
+             efficiency falling off well before the core count, would
+             be the finding worth chasing.
+spread     = max/min across repeats. Treat a cell above ~1.3x as noise-
+             dominated and re-run on an idle machine -- see the load
+             warning in rng_bench and OPEN_RESEARCH #7c(a).
+
+Machines with heterogeneous cores (Apple P/E, Intel P/E) will show
+efficiency sagging once the scheduler starts filling efficiency cores.
+That is the hardware, not the library: report the core split alongside.
+
+wrote docs/perf_arm64/threads_bundled_arm64_warmed.csv

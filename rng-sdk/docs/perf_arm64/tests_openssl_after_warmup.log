@@ -1,0 +1,12 @@
+rngsdk 0.1.0-prototype test suite
+  mapping[xoshiro256++]: mean=0.500149 monobit z=-1.86258
+  mapping[pcg64]: mean=0.499593 monobit z=0.438766
+  mapping[hmac-drbg]: mean=0.499497 monobit z=-0.172344
+  avalanche[xoshiro256++]: 50.0323% bits flipped
+  avalanche[pcg64]: 50.024% bits flipped
+  avalanche[hmac-drbg]: 49.9648% bits flipped
+  modulo-bias demo: naive chi2=252.032  rejection chi2=5.02542
+  mapping[ctr-drbg]: mean=0.500992 monobit z=-0.260888
+  avalanche[ctr-drbg]: 50.0729% bits flipped
+
+PASSED: 895552/895552 checks
