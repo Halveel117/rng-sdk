@@ -37,10 +37,10 @@ namespace crypto {
 // Also exactly the CTR-DRBG no-df seedlen, so both engines take it as-is.
 inline Bytes SecureEntropy() { return OsEntropy(48); }
 
-// Drbg must provide Instantiate(entropy, nonce, personalization),
-// Reseed(entropy) and Generate(out, n). Copyability follows Drbg's
+// DrbgT must provide Instantiate(entropy, nonce, personalization),
+// Reseed(entropy) and Generate(out, n). Copyability follows DrbgT's
 // (HmacDrbg is copyable; CtrDrbg owns a cipher context and is move-only).
-template <class Drbg, Bytes (*SeedFrom64)(std::uint64_t)>
+template <class DrbgT, Bytes (*SeedFrom64)(std::uint64_t)>
 class BufferedDrbgEngine {
 public:
     using result_type = std::uint64_t;
@@ -81,9 +81,37 @@ public:
         return x;
     }
 
+    // Byte-granular draw from the same buffered stream: n bytes here equal the
+    // next n bytes Next() would have produced. Requests of 4 KiB or more
+    // bypass the buffer in whole Generate() calls. Note this differs from
+    // Random<E>::NextBytes, which draws whole words and discards a partial
+    // tail; the two are not interchangeable mid-stream.
+    void NextBytes(std::uint8_t* out, std::size_t n) {
+        while (n > 0) {
+            if (pos_ < kBufBytes) {
+                const std::size_t take = (kBufBytes - pos_ < n) ? kBufBytes - pos_ : n;
+                std::memcpy(out, buf_ + pos_, take);
+                pos_ += take;
+                out += take;
+                n -= take;
+            } else if (n >= kBufBytes) {
+                drbg_.Generate(out, kBufBytes);
+                out += kBufBytes;
+                n -= kBufBytes;
+            } else {
+                Refill();
+            }
+        }
+    }
+
     std::uint64_t operator()() { return Next(); }
     static constexpr std::uint64_t min() { return 0; }
     static constexpr std::uint64_t max() { return ~0ULL; }
+
+    // The underlying SP 800-90A instance, e.g. for Generate() with additional
+    // input. Drawing from it directly bypasses (and does not invalidate) the
+    // buffer, so already-buffered bytes still come out of Next() first.
+    DrbgT& Drbg() { return drbg_; }
 
 private:
     void Refill() {
@@ -91,7 +119,7 @@ private:
         pos_ = 0;
     }
 
-    Drbg drbg_;
+    DrbgT drbg_;
     std::uint8_t buf_[kBufBytes] = {0};
     std::size_t pos_ = kBufBytes;
 };

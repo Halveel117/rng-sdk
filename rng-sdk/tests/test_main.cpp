@@ -641,6 +641,44 @@ static void TestCavpCtrDrbg() {
     RunCavp<crypto::CtrDrbg>(golden::kCavpCtrAes256NoDfFull, golden::kCavpCtrReturnedBytes);
 }
 
+#endif
+
+// The shared BufferedDrbgEngine's byte path: NextBytes in uneven pieces must
+// equal the word stream byte-for-byte. The piece sizes are chosen to hit all
+// three branches: a fresh >=4 KiB request (buffer bypass), a draw that drains
+// the buffer and refills mid-request, and a mid-stream request that drains
+// the buffer and then bypasses it twice. Also: Drbg() is the live instance,
+// seeded exactly as a raw DRBG given the same bytes.
+template <class Engine, class Raw>
+static void TestDrbgEngineBytes() {
+    const std::size_t pieces[] = {4096, 3, 5000, 61, 3128 + 8192, 7};
+    std::size_t total = 0;
+    for (std::size_t p : pieces) total += p;
+
+    Engine a(static_cast<std::uint64_t>(11)), b(static_cast<std::uint64_t>(11));
+    Bytes got(total);
+    std::size_t off = 0;
+    for (std::size_t p : pieces) { a.NextBytes(got.data() + off, p); off += p; }
+
+    Bytes expect((total + 7) / 8 * 8);
+    for (std::size_t i = 0; i < expect.size(); i += 8) {
+        const std::uint64_t w = b.Next();
+        std::memcpy(expect.data() + i, &w, 8);
+    }
+    expect.resize(total);
+    CHECK(got == expect);
+
+    const Bytes seed(48, 0x3C);
+    Engine e(seed);
+    Raw raw;
+    raw.Instantiate(seed, {}, {});
+    std::uint8_t via_engine[32], via_raw[32];
+    e.Drbg().Generate(via_engine, sizeof via_engine);
+    raw.Generate(via_raw, sizeof via_raw);
+    CHECK(std::memcmp(via_engine, via_raw, sizeof via_raw) == 0);
+}
+
+#if defined(RNGSDK_USE_OPENSSL)
 // Engine adapter contract, mirroring the HMAC engine's: explicit seeds are
 // reproducible, distinct seeds diverge, and default construction is OS-seeded.
 static void TestCtrDrbgEngine() {
@@ -2318,8 +2356,10 @@ int main() {
     TestPlayWithoutClientSeedRefused();
     TestModuloBiasDemo();
     TestCavpHmacDrbg();
+    TestDrbgEngineBytes<crypto::HmacDrbgEngine, crypto::HmacDrbg>();
 #if defined(RNGSDK_USE_OPENSSL)
     TestCavpCtrDrbg();
+    TestDrbgEngineBytes<crypto::CtrDrbgEngine, crypto::CtrDrbg>();
     TestCtrDrbgEngine();
     TestCtrDrbgLengthContract();
     TestMapping<crypto::CtrDrbgEngine>("ctr-drbg");
