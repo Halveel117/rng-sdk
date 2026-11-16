@@ -59,6 +59,11 @@ cmake -S . -B build-openssl -DRNGSDK_USE_OPENSSL=ON \
       -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake
 ```
 
+Using it from another CMake project: `add_subdirectory(rng-sdk)` and link
+`rngsdk` (headers), `rngsdk_c` or `rngsdk_c_static` (C ABI). Tests, tools
+and examples build only when `rng-sdk/` is the top-level project; pass
+`-DRNGSDK_BUILD_TOOLS=ON` to build them as a subproject too.
+
 ## API (spec-conformant)
 
 ```cpp
